@@ -4,11 +4,11 @@ on:
   push:
     branches: [ main, master ]
     paths:
-      - 'g1_training/terraform/**'
+      - 'terraform/**'
   pull_request:
     branches: [ main, master ]
     paths:
-      - 'g1_training/terraform/**'
+      - 'terraform/**'
   workflow_dispatch:
     inputs:
       environment:
@@ -21,7 +21,7 @@ on:
           - production
 
 env:
-  TERRAFORM_WORKING_DIR: ./g1_training/terraform
+  TERRAFORM_WORKING_DIR: terraform
   AWS_REGION: us-west-2
 
 jobs:

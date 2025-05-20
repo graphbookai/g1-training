@@ -4,9 +4,9 @@ on:
   push:
     branches: [ main, master ]
     paths:
-      - 'g1_training/**'
-      - '!g1_training/terraform/**'
-      - '!g1_training/.github/**'
+      - '**'
+      - '!terraform/**'
+      - '!.github/**'
   pull_request:
     branches: [ main, master ]
   workflow_dispatch:
@@ -48,7 +48,7 @@ jobs:
 
       - name: Build, tag, and push Docker image to Amazon ECR
         id: build-image
-        working-directory: ./g1_training
+        working-directory: .
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           IMAGE_TAG: ${{ github.sha }}
