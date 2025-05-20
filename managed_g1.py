@@ -275,46 +275,16 @@ class EventCfg:
         },
     )
     
-    # add_robot_mass = EventTerm(
-    #     func=mdp.randomize_rigid_body_mass,
-    #     mode="startup",
-    #     params={
-    #         "asset_cfg": SceneEntityCfg("robot", body_names=".*"),
-    #         "mass_distribution_params": (1.0, 0.5),
-    #         "operation": "add",
-    #     },
-    # )
-    
-    # random_orientation = EventTerm(
-    #     func=mdp.reset_root_state_with_random_orientation,
-    #     mode="startup",
-    #     params={
-    #         "asset_cfg": SceneEntityCfg("robot", body_names=".*"),
-    #         # "env_ids": torch.arange(1, device="cpu"),
-    #         "pose_range": {
-    #             "x": (-0.1, 0.1),
-    #             "y": (-0.1, 0.1),
-    #             "z": (0.0, 0.0)
-    #         },
-    #         "velocity_range": { 
-    #             "x": (-0.1, 0.1),
-    #             "y": (-0.1, 0.1),
-    #             "z": (-0.1, 0.1),
-    #             "roll": (-0.1, 0.1),
-    #             "pitch": (-0.1, 0.1),
-    #             "yaw": (-0.1, 0.1),
-    #         },
-    #     }
-    # )
-
+    # reset robot to standing position
+    reset_robot_position = EventTerm(
+        func=mdp.reset_scene_to_default,
+        mode="reset",
+    )
 
 
 @configclass
 class G1ManagedSceneCfg(ManagerBasedRLEnvCfg):
     """Configuration for the cartpole environment."""
-
-    def __init__(self, args_cli=None):
-        self.args_cli = args_cli
 
     # Scene settings
     scene: G1SceneCfg = G1SceneCfg(num_envs=1, env_spacing=4.0)

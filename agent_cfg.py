@@ -1,6 +1,6 @@
 from isaaclab.utils import configclass
 
-from isaaclab_rl.rsl_rl import RslRlOnPolicyRunnerCfg, RslRlPpoActorCriticCfg, RslRlPpoAlgorithmCfg
+from isaaclab_rl.rsl_rl import RslRlOnPolicyRunnerCfg, RslRlPpoActorCriticCfg, RslRlPpoAlgorithmCfg, RslRlPpoActorCriticRecurrentCfg
 from isaaclab_rl.rsl_rl.rl_cfg import RslRlOnPolicyRunnerCfg
 
 @configclass
@@ -17,11 +17,14 @@ class UnitreeG1RoughRunnerCfg(RslRlOnPolicyRunnerCfg):
     empirical_normalization = False
 
     # Policy settings
-    policy = RslRlPpoActorCriticCfg(
+    policy = RslRlPpoActorCriticRecurrentCfg(
         init_noise_std=1.0,
         actor_hidden_dims=[512, 256, 128],
         critic_hidden_dims=[512, 256, 128],
         activation="elu",
+        rnn_type="lstm",
+        rnn_hidden_dim=64,
+        rnn_num_layers=1,
     )
 
     # Algorithm settings
@@ -57,11 +60,14 @@ unitree_g1_agent_cfg = {
     "max_iterations": 15000,
     "empirical_normalization": False,
     "policy": {
-        "class_name": "ActorCritic",
+        "class_name": "ActorCriticRecurrent",
         "init_noise_std": 1.0,
         "actor_hidden_dims": [512, 256, 128],
         "critic_hidden_dims": [512, 256, 128],
         "activation": "elu",
+        "rnn_type": "lstm",
+        "rnn_hidden_dim": 64,
+        "rnn_num_layers": 1,
     },
     "algorithm": {
         "class_name": "PPO",
