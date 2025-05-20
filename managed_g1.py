@@ -74,39 +74,36 @@ def constant_commands(env: ManagerBasedRLEnvCfg) -> torch.Tensor:
     return tensor_lst
 
 @configclass
-class MySceneCfg(InteractiveSceneCfg):
+class G1SceneCfg(InteractiveSceneCfg):
     """Configuration for the terrain scene with a legged robot."""
 
     # if args_cli.terrain == "flat":
-    
-    # flat terrain
-    # terrain = TerrainImporterCfg(
-    #     prim_path="/World/ground",
-    #     terrain_type="plane",
-    #     debug_vis=False,
-    # )
-    # else:
     terrain = TerrainImporterCfg(
         prim_path="/World/ground",
-        terrain_type="generator",
-        terrain_generator=ROUGH_TERRAINS_CFG,
-        physics_material=sim_utils.RigidBodyMaterialCfg(
-            friction_combine_mode="multiply",
-            restitution_combine_mode="multiply",
-            static_friction=1.0,
-            dynamic_friction=1.0,
-        ),
+        terrain_type="plane",
         debug_vis=False,
     )
+    # else:
+    #     terrain = TerrainImporterCfg(
+    #         prim_path="/World/ground",
+    #         terrain_type="generator",
+    #         terrain_generator=ROUGH_TERRAINS_CFG,
+    #         physics_material=sim_utils.RigidBodyMaterialCfg(
+    #             friction_combine_mode="multiply",
+    #             restitution_combine_mode="multiply",
+    #             static_friction=1.0,
+    #             dynamic_friction=1.0,
+    #         ),
+    #         debug_vis=False,
+    #     )
 
     # robots
     robot: ArticulationCfg = MISSING
 
     height_scanner = RayCasterCfg(
         prim_path="{ENV_REGEX_NS}/Robot/base",
-        offset=RayCasterCfg.OffsetCfg(pos=(0.0, 0.0, 20.0)),
         attach_yaw_only=True,
-        pattern_cfg=patterns.GridPatternCfg(resolution=0.1, size=[1.6, 1.0]),
+        pattern_cfg=patterns.GridPatternCfg(resolution=0.1, size=[1.0, 1.0]),
         debug_vis=False,
         mesh_prim_paths=["/World/ground"],
     )
@@ -146,7 +143,10 @@ class ObservationsCfg:
         actions = ObsTerm(func=mdp.last_action)
         height_scan = ObsTerm(
             func=mdp.height_scan,
-            params={"sensor_cfg": SceneEntityCfg("height_scanner")},
+            params={
+                "sensor_cfg": SceneEntityCfg("height_scanner"),
+                "offset": 0.0
+            },
             clip=(-1.0, 1.0),
         )
 
@@ -178,7 +178,7 @@ class CommandsCfg:
         rel_heading_envs=1.0,
         heading_command=True,
         heading_control_stiffness=0.5,
-        debug_vis=True,
+        debug_vis=False,
         ranges=mdp.UniformVelocityCommandCfg.Ranges(
             lin_vel_x=(0.0, 0.0),
             lin_vel_y=(0.0, 0.0),
@@ -204,6 +204,13 @@ class RewardsCfg:
         params={"command_name": "base_velocity", "std": math.sqrt(0.25)},
     )
     # -- penalties
+    head_height = RewTerm(
+        func=mdp.base_height_l2,
+        weight=-5.0,
+        params={
+            "target_height": .8,
+            "sensor_cfg": SceneEntityCfg("height_scanner"),
+        })
     lin_vel_z_l2 = RewTerm(func=mdp.lin_vel_z_l2, weight=-2.0)
     ang_vel_xy_l2 = RewTerm(func=mdp.ang_vel_xy_l2, weight=-0.05)
     dof_torques_l2 = RewTerm(func=mdp.joint_torques_l2, weight=-1.0e-5)
@@ -243,6 +250,12 @@ class TerminationsCfg:
             "threshold": 1.0,
         },
     )
+    fallen = DoneTerm(
+        func=mdp.root_height_below_minimum,
+        params={
+            "minimum_height": 0.55,
+        },
+    )
 
 
 @configclass
@@ -262,15 +275,15 @@ class EventCfg:
         },
     )
     
-    add_robot_mass = EventTerm(
-        func=mdp.randomize_rigid_body_mass,
-        mode="startup",
-        params={
-            "asset_cfg": SceneEntityCfg("robot", body_names=".*"),
-            "mass_distribution_params": (1.0, 0.5),
-            "operation": "add",
-        },
-    )
+    # add_robot_mass = EventTerm(
+    #     func=mdp.randomize_rigid_body_mass,
+    #     mode="startup",
+    #     params={
+    #         "asset_cfg": SceneEntityCfg("robot", body_names=".*"),
+    #         "mass_distribution_params": (1.0, 0.5),
+    #         "operation": "add",
+    #     },
+    # )
     
     # random_orientation = EventTerm(
     #     func=mdp.reset_root_state_with_random_orientation,
@@ -300,8 +313,11 @@ class EventCfg:
 class G1ManagedSceneCfg(ManagerBasedRLEnvCfg):
     """Configuration for the cartpole environment."""
 
+    def __init__(self, args_cli=None):
+        self.args_cli = args_cli
+
     # Scene settings
-    scene: MySceneCfg = MySceneCfg(num_envs=1, env_spacing=4.0)
+    scene: G1SceneCfg = G1SceneCfg(num_envs=1, env_spacing=4.0)
     # Basic settings
     observations: ObservationsCfg = ObservationsCfg()
     actions: ActionsCfg = ActionsCfg()
@@ -347,7 +363,7 @@ class G1RoughEnvCfg(G1ManagedSceneCfg):
         super().__post_init__()
         # Scene
         G1_MINIMAL_CFG = G1_CFG.copy()
-        G1_MINIMAL_CFG.spawn.usd_path = "/home/sam/Documents/robotics/mujoco/g1_training/g1.usd"
+        G1_MINIMAL_CFG.spawn.usd_path = "./g1.usd"
         self.scene.robot = G1_MINIMAL_CFG.replace(prim_path="{ENV_REGEX_NS}/Robot")
         self.scene.height_scanner.prim_path = "{ENV_REGEX_NS}/Robot/torso_link"
         

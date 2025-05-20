@@ -44,7 +44,7 @@ class UnitreeG1RoughRunnerCfg(RslRlOnPolicyRunnerCfg):
     neptune_project = "orbit"
     wandb_project = "orbit"
     run_name = ""
-    resume = True
+    resume = False
     load_run = ".*"
     load_checkpoint = "logs/model_.*.pt"
 
