@@ -148,25 +148,3 @@ resource "aws_batch_job_definition" "g1_training" {
     }
   })
 }
-
-# Job submission
-resource "null_resource" "submit_job" {
-  triggers = {
-    always_run = timestamp()
-  }
-
-  provisioner "local-exec" {
-    command = <<-EOT
-      aws batch submit-job \
-        --job-name ${var.job_name}-${formatdate("YYYY-MM-DD-hh-mm-ss", timestamp())} \
-        --job-queue ${aws_batch_job_queue.g1_training.name} \
-        --job-definition ${aws_batch_job_definition.g1_training.name} \
-        --container-overrides '{"command": ["python", "train.py", "${join("\", \"", var.command_args)}"]}'
-    EOT
-  }
-
-  depends_on = [
-    aws_batch_job_definition.g1_training,
-    aws_batch_job_queue.g1_training
-  ]
-}

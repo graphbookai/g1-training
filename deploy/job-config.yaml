@@ -1,0 +1,27 @@
+---
+# G1 Training Job Configuration
+job:
+  name: g1-training-job
+  queue: g1-training-job-queue
+  definition: g1-training-job
+  
+# Training parameters
+training:
+  task: G1-Walking-v0
+  num_envs: 16
+  max_iterations: 1000
+  seed: 42
+  learning_rate: 0.001
+  device: "cuda"
+  
+# AWS Configuration
+aws:
+  region: us-west-2
+  ecr_repository: g1-training
+  image_tag: latest  # Set to "latest" or specify a specific tag
+  
+# Resource allocation
+resources:
+  cpu: 8
+  memory: 30000
+  gpu: 1

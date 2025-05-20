@@ -7,11 +7,11 @@ terraform {
   }
   
   # You can uncomment this block to configure remote state storage in S3 if needed
-  # backend "s3" {
-  #   bucket = "your-terraform-state-bucket"
-  #   key    = "g1-training/terraform.tfstate"
-  #   region = "us-west-2"
-  # }
+  backend "s3" {
+    bucket = "rsamf-g1-training-terraform-state"
+    key    = "g1-training/terraform.tfstate"
+    region = "us-west-2"
+  }
 }
 
 provider "aws" {
