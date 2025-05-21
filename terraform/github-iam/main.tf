@@ -82,9 +82,34 @@ resource "aws_iam_policy" "ecr_permissions" {
           "ecr:DescribeRepositories",
           "ecr:GetRepositoryPolicy",
           "ecr:SetRepositoryPolicy",
-          "ecr:PutLifecyclePolicy"
+          "ecr:PutLifecyclePolicy",
+          "ecr:ListTagsForResource",
         ]
         Resource = "*"
+      }
+    ]
+  })
+}
+
+resource "aws_iam_policy" "s3_permissions" {
+  name        = "github-actions-s3-policy"
+  description = "Policy for GitHub Actions to interact with S3"
+  
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Action = [
+          "s3:ListBucket",
+          "s3:GetObject",
+          "s3:PutObject",
+          "s3:DeleteObject"
+        ]
+        Resource = [
+          "arn:aws:s3:::rsamf-g1-training-terraform-state",
+          "arn:aws:s3:::rsamf-g1-training-terraform-state/*"
+        ]
       }
     ]
   })
@@ -135,7 +160,8 @@ resource "aws_iam_policy" "iam_permissions" {
           "iam:PutRolePolicy",
           "iam:CreateInstanceProfile",
           "iam:AddRoleToInstanceProfile",
-          "iam:GetInstanceProfile"
+          "iam:GetInstanceProfile",
+          "iam:ListRolePolicies",
         ]
         Resource = "arn:aws:iam::${var.aws_account_id}:role/aws_batch_*"
       },
@@ -178,6 +204,11 @@ resource "aws_iam_policy" "ec2_permissions" {
 resource "aws_iam_role_policy_attachment" "attach_ecr_policy" {
   role       = aws_iam_role.github_actions.name
   policy_arn = aws_iam_policy.ecr_permissions.arn
+}
+
+resource "aws_iam_role_policy_attachment" "attach_s3_policy" {
+  role       = aws_iam_role.github_actions.name
+  policy_arn = aws_iam_policy.s3_permissions.arn
 }
 
 resource "aws_iam_role_policy_attachment" "attach_batch_policy" {

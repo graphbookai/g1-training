@@ -46,7 +46,7 @@ resource "aws_iam_role_policy_attachment" "instance_role_policy" {
 
 resource "aws_iam_role_policy_attachment" "s3_access_policy" {
   role       = aws_iam_role.ec2_instance_role.name
-  policy_arn = "arn:aws:iam::aws:policy/AmazonS3FullAccess"  # For saving training results
+  policy_arn = "arn:aws:iam::aws:policy/AmazonS3FullAccess" # For saving training results
 }
 
 resource "aws_iam_instance_profile" "batch_instance_profile" {
@@ -86,21 +86,18 @@ resource "aws_default_subnet" "default_az1" {
 resource "aws_security_group" "batch_sg" {
   name        = "aws_batch_compute_environment_security_group"
   description = "Security group for AWS Batch compute environment"
-  
-  egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
 }
 
 # Job queue that jobs can be submitted to
 resource "aws_batch_job_queue" "g1_training" {
-  name                 = "g1-training-job-queue"
-  state                = "ENABLED"
-  priority             = var.job_queue_priority
-  compute_environments = [aws_batch_compute_environment.g1_training.arn]
+  name     = "g1-training-job-queue"
+  state    = "ENABLED"
+  priority = var.job_queue_priority
+
+  compute_environment_order {
+    order               = 1
+    compute_environment = aws_batch_compute_environment.g1_training.arn
+  }
 }
 
 # Job definition
@@ -109,10 +106,10 @@ resource "aws_batch_job_definition" "g1_training" {
   type = "container"
 
   container_properties = jsonencode({
-    image      = local.ecr_image_tag
-    vcpus      = var.job_vcpus
-    memory     = var.job_memory
-    command    = ["python", "train.py"] 
+    image   = local.ecr_image_tag
+    vcpus   = var.job_vcpus
+    memory  = var.job_memory
+    command = ["python", "train.py"]
     environment = [
       {
         name  = "NVIDIA_VISIBLE_DEVICES"
