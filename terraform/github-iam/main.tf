@@ -6,7 +6,7 @@ terraform {
     }
   }
 
-#   Consider storing state remotely for team collaboration
+  #   Consider storing state remotely for team collaboration
   backend "s3" {
     bucket = "rsamf-g1-training-terraform-state"
     key    = "github-iam/terraform.tfstate"
@@ -28,7 +28,7 @@ resource "aws_iam_openid_connect_provider" "github_actions" {
 # IAM role that GitHub Actions will assume
 resource "aws_iam_role" "github_actions" {
   name = var.github_actions_role_name
-  
+
   # Trust relationship to allow GitHub Actions to assume this role
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
@@ -63,27 +63,14 @@ resource "aws_iam_role" "github_actions" {
 resource "aws_iam_policy" "ecr_permissions" {
   name        = "github-actions-ecr-policy"
   description = "Policy for GitHub Actions to interact with ECR"
-  
+
   policy = jsonencode({
     Version = "2012-10-17"
     Statement = [
       {
         Effect = "Allow"
         Action = [
-          "ecr:GetAuthorizationToken",
-          "ecr:BatchCheckLayerAvailability",
-          "ecr:BatchGetImage",
-          "ecr:CompleteLayerUpload",
-          "ecr:GetDownloadUrlForLayer",
-          "ecr:InitiateLayerUpload",
-          "ecr:PutImage",
-          "ecr:UploadLayerPart",
-          "ecr:CreateRepository",
-          "ecr:DescribeRepositories",
-          "ecr:GetRepositoryPolicy",
-          "ecr:SetRepositoryPolicy",
-          "ecr:PutLifecyclePolicy",
-          "ecr:ListTagsForResource",
+          "ecr:*",
         ]
         Resource = "*"
       }
@@ -94,7 +81,7 @@ resource "aws_iam_policy" "ecr_permissions" {
 resource "aws_iam_policy" "s3_permissions" {
   name        = "github-actions-s3-policy"
   description = "Policy for GitHub Actions to interact with S3"
-  
+
   policy = jsonencode({
     Version = "2012-10-17"
     Statement = [
@@ -119,22 +106,14 @@ resource "aws_iam_policy" "s3_permissions" {
 resource "aws_iam_policy" "batch_permissions" {
   name        = "github-actions-batch-policy"
   description = "Policy for GitHub Actions to interact with AWS Batch"
-  
+
   policy = jsonencode({
     Version = "2012-10-17"
     Statement = [
       {
         Effect = "Allow"
         Action = [
-          "batch:DescribeJobDefinitions",
-          "batch:DescribeJobQueues",
-          "batch:DescribeComputeEnvironments",
-          "batch:RegisterJobDefinition",
-          "batch:CreateJobQueue",
-          "batch:CreateComputeEnvironment",
-          "batch:UpdateComputeEnvironment",
-          "batch:UpdateJobQueue",
-          "batch:SubmitJob"
+          "batch:*",
         ]
         Resource = "*"
       }
@@ -146,29 +125,21 @@ resource "aws_iam_policy" "batch_permissions" {
 resource "aws_iam_policy" "iam_permissions" {
   name        = "github-actions-iam-policy"
   description = "Policy for GitHub Actions to manage IAM roles for Batch"
-  
+
   policy = jsonencode({
     Version = "2012-10-17"
     Statement = [
       {
         Effect = "Allow"
         Action = [
-          "iam:GetRole",
-          "iam:PassRole",
-          "iam:CreateRole",
-          "iam:AttachRolePolicy",
-          "iam:PutRolePolicy",
-          "iam:CreateInstanceProfile",
-          "iam:AddRoleToInstanceProfile",
-          "iam:GetInstanceProfile",
-          "iam:ListRolePolicies",
+          "iam:*",
         ]
         Resource = "arn:aws:iam::${var.aws_account_id}:role/aws_batch_*"
       },
       {
         Effect = "Allow"
         Action = [
-          "iam:GetInstanceProfile"
+          "iam:*"
         ]
         Resource = "arn:aws:iam::${var.aws_account_id}:instance-profile/aws_batch_*"
       }
@@ -180,19 +151,14 @@ resource "aws_iam_policy" "iam_permissions" {
 resource "aws_iam_policy" "ec2_permissions" {
   name        = "github-actions-ec2-policy"
   description = "Policy for GitHub Actions to manage EC2 resources for Batch"
-  
+
   policy = jsonencode({
     Version = "2012-10-17"
     Statement = [
       {
         Effect = "Allow"
         Action = [
-          "ec2:DescribeSubnets",
-          "ec2:DescribeSecurityGroups",
-          "ec2:CreateSecurityGroup",
-          "ec2:AuthorizeSecurityGroupEgress",
-          "ec2:AuthorizeSecurityGroupIngress",
-          "ec2:DescribeVpcs"
+          "ec2:*",
         ]
         Resource = "*"
       }

@@ -5,7 +5,7 @@ terraform {
       version = "~> 5.0"
     }
   }
-  
+
   # You can uncomment this block to configure remote state storage in S3 if needed
   backend "s3" {
     bucket = "rsamf-g1-training-terraform-state"
